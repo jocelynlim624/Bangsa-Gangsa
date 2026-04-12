@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+
+    <style>
+      body { margin: 0; overflow: hidden; font-family: "Century Gothic", AppleGothic, sans-serif; }
+
+      #ui-overlay {
+        position: absolute; width: 100%; height: 100%;
+        display: flex; align-items: center; justify-content: center;
+        background: rgba(0,0,0,0.9); z-index: 10;
+      }
+      
+      #start-btn { width: min(80vw, 300px); height: auto; cursor: pointer; }
+
+      #scanning-overlay {
+        position: absolute; width: 100%; height: 100%;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        z-index: 5; pointer-events: none;
+      }
+
+      #instruction-img {
+        position: absolute; top: 2%; left: 50%; transform: translateX(-50%);
+        width: min(70vw, 400px); max-height: 20vh; opacity: 0;
+        animation: fadeIn 0.4s ease forwards;
+      }
+
+      @keyframes fadeIn {
+        0% { opacity: 0; transform: translate(-50%, -10px); }
+        100% { opacity: 1; transform: translateX(-50%); }
+      }
+
+      .scan-line {
+        width: 80%; height: 2px; background: #ff00dd;
+        box-shadow: 0 0 20px #ff00dd; animation: moveScan 2s linear infinite;
+      }
+
+      @keyframes moveScan {
+        0% { transform: translateY(-150px); opacity: 0; }
+        50% { opacity: 1; }
+        100% { transform: translateY(150px); opacity: 0; }
+      }
+
+      #frame-overlay {
+        position: absolute; top: 2%; left: 2%; width: 96%; height: 96%;
+        background-image: url('./assets/ui/frame.png'); background-size: 100% 100%;
+        z-index: 1; pointer-events: none;
+      }
+
+      #info-btn {
+        position: absolute; bottom: 5%; right: 5%; width: 10vw; max-width: 100px; min-width: 50px;
+        opacity: 0; z-index: 20; transition: opacity 0.7s ease; cursor: pointer;
+      }
+
+      #info-btn.visible { opacity: 1; animation: fadeInBtn 0.7s ease forwards; }
+
+      @keyframes fadeInBtn { 0% { opacity: 0; transform: translateY(-20px); } 100% { opacity: 1; transform: translateY(0); } }
+
+      #info-box {
+        position: absolute; bottom: 10%; left: 50%; transform: translateX(-50%);
+        background: #F1E2D7; color: #2b1d0e; border-radius: 12px; padding: 14px 16px;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.25); width: min(80vw, 360px);
+        max-height: 60vh; overflow-y: auto; opacity: 0; z-index: 11; transition: opacity 0.4s ease;
+      }
+
+      #info-box.visible { opacity: 0.95; }
+
+      #bottom-logo {
+        position: absolute;
+        bottom: 7%;
+        left: 50%;
+        transform: translateX(-50%);
+        width: min(24vw, 140px);
+        max-width: 140px;
+        opacity: 0.95;
+        z-index: 5;
+        pointer-events: none;
+      }
+      #intro-overlay {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #000;
+        z-index: 25;
+        opacity: 1;
+        transition: opacity 0.5s ease-in;
+        pointer-events: auto;
+      }
+
+      #intro-overlay.hidden {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      #logo-video {
+        width: min(70vw, 480px);
+        max-width: 480px;
+        height: auto;
+        border-radius: 12px;
+        box-shadow: 0 24px 60px rgba(0,0,0,0.4);
+      }
+      .hidden { display: none !important; }
+    </style>
+  </head>
+
+  <body>
+    <div id="intro-overlay">
+      <video id="logo-video" muted playsinline autoplay preload="auto">
+        <source src="./assets/ui/FYP_Logo Animation-1.mov" type="video/quicktime">
+        <source src="./assets/ui/FYP_Logo Animation-1.webm" type="video/webm">
+      </video>
+    </div>
+
+    <div id="ui-overlay">
+      <img id="start-btn" class="hidden" src="./assets/ui/start.png" alt="START">
+    </div>
+
+    <div id="scanning-overlay" class="hidden">
+      <div class="scan-line"></div>
+      <img id="instruction-img" src="./assets/ui/instruction.png" alt="Instruction">
+    </div>
+
+    <div id="frame-overlay"></div>
+
+    <img id="info-btn" class="hidden" src="./assets/ui/info.png" alt="Info" />
+    <div id="info-box" class="hidden" role="dialog"><p id="info-text"></p></div>
+    <img id="bottom-logo" src="./assets/ui/logo.png" alt="Logo" />
+
+    <a-scene 
+      mindar-image="imageTargetSrc: ./assets/targets.mind; uiScanning: no;" 
+      color-space="sRGB" renderer="colorManagement: true, physicallyCorrectLights" 
+      vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
+      
+      <a-assets id="asset-library">
+        </a-assets>
+
+      <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+      <a-entity id="main-container"></a-entity>
+    </a-scene>
+
+    <script>
+      const instruments = [
+        { name: "bonang", desc: "The Bonang is a pot shaped instrument with knobs on its head, suspended over strings on a wooden frame or rancak. It is played by hitting the knobs on the gongs." },
+        { name: "demung", desc: "The Demung is a metallophone with metal bars over a wooden resonator and is struck by a wooden hammer. It plays the lowest octave of the core melody." },
+        { name: "gambang", desc: "The Gambang consists of bars placed over a boat-shaped resonator. It is a multi-octave instrument and sounded with two small hammer-like beaters." },
+        { name: "gendang", desc: "The Gendang controls the rhythm of a composition and is played by hitting both heads with the palm of the hand." },
+        { name: "gender", desc: "A Gender is an instrument generally found in Java and Bali Gamelan, with bars placed over bamboo resonators. It is played using two beaters for multi-octave Gender." },
+        { name: "gong", desc: "Shaped similarly to other instruments in the Pencon family, the Gong is larger in size." },
+        { name: "kempul", desc: "Kempul is similar to Gong but are smaller in size and is played by hitting the nob to structure the melody." },
+        { name: "kenong", desc: "Kenong is the designation for large, individual, horizontally resting gamelan gongs." },
+        { name: "rebab", desc: "The Rebab can be played in various scale. It is a bowed lute with a long neck with a triangular resonator and two brass chords." },
+        { name: "saron", desc: "A single-octave metallophone. The Saron represents the values of harmony and cooperation in the Gamelan system." },
+        { name: "siter", desc: "The Siter is played by plucking its chords and is rarely in Gamelan ensembles, used as an addition to the melody. The Siter has metal strings over a box resonator." },
+        { name: "suling", desc: "The suling is made of bamboo and is played by blowing it." }
+      ];
+
+      const assetLib = document.querySelector('#asset-library');
+      const container = document.querySelector('#main-container');
+      const infoText = document.querySelector('#info-text');
+      const scanUI = document.querySelector('#scanning-overlay');
+      const instructionImg = document.querySelector('#instruction-img');
+      const infoBtn = document.querySelector('#info-btn');
+      const infoBox = document.querySelector('#info-box');
+      const introOverlay = document.querySelector('#intro-overlay');
+      const logoVideo = document.querySelector('#logo-video');
+      const startBtn = document.querySelector('#start-btn');
+
+      const showStartButton = () => {
+        introOverlay.classList.add('hidden');
+        setTimeout(() => {
+          introOverlay.style.display = 'none';
+          startBtn.classList.remove('hidden');
+        }, 500);
+      };
+
+      logoVideo.addEventListener('ended', showStartButton);
+      logoVideo.addEventListener('loadedmetadata', () => {
+        logoVideo.play().catch(() => {
+          setTimeout(showStartButton, 2700);
+        });
+      });
+      setTimeout(showStartButton, 2700);
+
+      // Hide the start button until the intro animation is complete.
+      startBtn.classList.add('hidden');
+
+      // 1. DYNAMIC ASSET & ENTITY GENERATION
+      instruments.forEach((item, index) => {
+        const upName = item.name.toUpperCase();
+        
+        // Inject Video and MP3 Assets
+        // Note: muted="true" is forced on the video tag
+        assetLib.innerHTML += `
+          <video id="${item.name}-vid" loop="true" crossorigin="anonymous" playsinline muted="true">
+            <source src="./assets/${item.name}/FYP_${upName}-1.mov" type='video/quicktime'>
+            <source src="./assets/${item.name}/FYP_${upName}.webm" type="video/webm">
+          </video>
+          <audio id="${item.name}-audio" src="./assets/${item.name}/FYP_${upName}.mp3" loop="true" preload="auto"></audio>
+        `;
+
+        const entity = document.createElement('a-entity');
+        entity.setAttribute('mindar-image-target', `targetIndex: ${index}`);
+        entity.innerHTML = `
+          <a-video id="${item.name}-entity" src="#${item.name}-vid" position="0 0 0.01" height="2" width="1.5" scale="0 0 0" transparent="true" 
+            animation="property: scale; to: 1 1 1; dur: 400; easing: easeOutBack; startEvents: targetFound">
+          </a-video>
+        `;
+        container.appendChild(entity);
+
+        // 2. TARGET BEHAVIOR
+        entity.addEventListener("targetFound", () => {
+          instructionImg.classList.remove('visible');
+          infoBtn.classList.remove('hidden');
+          requestAnimationFrame(() => infoBtn.classList.add('visible'));
+          setTimeout(() => scanUI.classList.add('hidden'), 400);
+
+          infoText.innerText = item.desc;
+          
+          document.querySelector(`#${item.name}-entity`).emit('targetFound');
+          
+          const v = document.querySelector(`#${item.name}-vid`);
+          const a = document.querySelector(`#${item.name}-audio`);
+          
+          v.muted = true; // Video is strictly visual
+          v.play();
+          a.play();
+        });
+
+        entity.addEventListener("targetLost", () => {
+          scanUI.classList.remove('hidden');
+          instructionImg.classList.add('visible');
+          infoBtn.classList.remove('visible');
+          setTimeout(() => infoBtn.classList.add('hidden'), 700);
+          infoBox.classList.remove('visible');
+          setTimeout(() => infoBox.classList.add('hidden'), 400);
+          
+          document.querySelector(`#${item.name}-entity`).setAttribute('scale', '0 0 0');
+          document.querySelector(`#${item.name}-vid`).pause();
+          document.querySelector(`#${item.name}-audio`).pause();
+        });
+      });
+
+      // 3. START BUTTON WARM-UP
+      document.querySelector('#start-btn').addEventListener('click', () => {
+        document.querySelector('#ui-overlay').classList.add('hidden');
+        scanUI.classList.remove('hidden');
+        instructionImg.classList.add('visible');
+        
+        instruments.forEach(item => {
+          const v = document.querySelector(`#${item.name}-vid`);
+          const a = document.querySelector(`#${item.name}-audio`);
+          // Warm up both to allow playback without a user-gesture error later
+          v.play().then(() => v.pause());
+          a.play().then(() => { a.pause(); a.currentTime = 0; });
+        });
+      });
+
+      // 4. INFO BOX TOGGLE
+      infoBtn.addEventListener('click', () => {
+        if (infoBox.classList.contains('visible')) {
+          infoBox.classList.remove('visible');
+          setTimeout(() => infoBox.classList.add('hidden'), 400);
+        } else {
+          infoBox.classList.remove('hidden');
+          requestAnimationFrame(() => infoBox.classList.add('visible'));
+        }
+      });
+    </script>
+  </body>
+</html>
