@@ -79,6 +79,7 @@
         z-index: 5;
         pointer-events: none;
       }
+
       #intro-overlay {
         position: absolute;
         inset: 0;
@@ -104,6 +105,7 @@
         border-radius: 12px;
         box-shadow: 0 24px 60px rgba(0,0,0,0.4);
       }
+
       .hidden { display: none !important; }
     </style>
   </head>
@@ -136,140 +138,244 @@
       color-space="sRGB" renderer="colorManagement: true, physicallyCorrectLights" 
       vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
       
-      <a-assets id="asset-library">
-        </a-assets>
+      <a-assets id="asset-library"></a-assets>
 
       <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
       <a-entity id="main-container"></a-entity>
     </a-scene>
 
     <script>
-      const instruments = [
-        { name: "bonang", desc: "The Bonang is a pot shaped instrument with knobs on its head, suspended over strings on a wooden frame or rancak. It is played by hitting the knobs on the gongs." },
-        { name: "demung", desc: "The Demung is a metallophone with metal bars over a wooden resonator and is struck by a wooden hammer. It plays the lowest octave of the core melody." },
-        { name: "gambang", desc: "The Gambang consists of bars placed over a boat-shaped resonator. It is a multi-octave instrument and sounded with two small hammer-like beaters." },
-        { name: "gendang", desc: "The Gendang controls the rhythm of a composition and is played by hitting both heads with the palm of the hand." },
-        { name: "gender", desc: "A Gender is an instrument generally found in Java and Bali Gamelan, with bars placed over bamboo resonators. It is played using two beaters for multi-octave Gender." },
-        { name: "gong", desc: "Shaped similarly to other instruments in the Pencon family, the Gong is larger in size." },
-        { name: "kempul", desc: "Kempul is similar to Gong but are smaller in size and is played by hitting the nob to structure the melody." },
-        { name: "kenong", desc: "Kenong is the designation for large, individual, horizontally resting gamelan gongs." },
-        { name: "rebab", desc: "The Rebab can be played in various scale. It is a bowed lute with a long neck with a triangular resonator and two brass chords." },
-        { name: "saron", desc: "A single-octave metallophone. The Saron represents the values of harmony and cooperation in the Gamelan system." },
-        { name: "siter", desc: "The Siter is played by plucking its chords and is rarely in Gamelan ensembles, used as an addition to the melody. The Siter has metal strings over a box resonator." },
-        { name: "suling", desc: "The suling is made of bamboo and is played by blowing it." }
-      ];
+    // ── CHROMAKEY SHADER ──────────────────────────────────────────────────────
+    AFRAME.registerShader('chromakey', {
+      schema: {
+        src:       { type: 'map' },
+        keyColor:  { type: 'color', default: '#00FF00' },
+        tolerance: { type: 'float', default: 0.35 }
+      },
+      vertexShader: `
+        varying vec2 vUv;
+        void main() {
+          vUv = uv;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: `
+        uniform sampler2D src;
+        uniform vec3 keyColor;
+        uniform float tolerance;
+        varying vec2 vUv;
+        void main() {
+          vec4 texColor = texture2D(src, vUv);
+          float diff = length(texColor.rgb - keyColor);
+          if (diff < tolerance) discard;
+          gl_FragColor = texColor;
+        }
+      `
+    });
 
-      const assetLib = document.querySelector('#asset-library');
-      const container = document.querySelector('#main-container');
-      const infoText = document.querySelector('#info-text');
-      const scanUI = document.querySelector('#scanning-overlay');
-      const instructionImg = document.querySelector('#instruction-img');
-      const infoBtn = document.querySelector('#info-btn');
-      const infoBox = document.querySelector('#info-box');
-      const introOverlay = document.querySelector('#intro-overlay');
-      const logoVideo = document.querySelector('#logo-video');
-      const startBtn = document.querySelector('#start-btn');
+    // ── DATA ──────────────────────────────────────────────────────────────────
+    const instruments = [
+      { name: "bonang", desc: "The Bonang is a pot shaped instrument with knobs on its head, suspended over strings on a wooden frame or rancak. It is played by hitting the knobs on the gongs." },
+      { name: "demung", desc: "The Demung is a metallophone with metal bars over a wooden resonator and is struck by a wooden hammer. It plays the lowest octave of the core melody." },
+      { name: "gambang", desc: "The Gambang consists of bars placed over a boat-shaped resonator. It is a multi-octave instrument and sounded with two small hammer-like beaters." },
+      { name: "gendang", desc: "The Gendang controls the rhythm of a composition and is played by hitting both heads with the palm of the hand." },
+      { name: "gender", desc: "A Gender is an instrument generally found in Java and Bali Gamelan, with bars placed over bamboo resonators. It is played using two beaters for multi-octave Gender." },
+      { name: "gong", desc: "Shaped similarly to other instruments in the Pencon family, the Gong is larger in size." },
+      { name: "kempul", desc: "Kempul is similar to Gong but are smaller in size and is played by hitting the nob to structure the melody." },
+      { name: "kenong", desc: "Kenong is the designation for large, individual, horizontally resting gamelan gongs." },
+      { name: "rebab", desc: "The Rebab can be played in various scale. It is a bowed lute with a long neck with a triangular resonator and two brass chords." },
+      { name: "saron", desc: "A single-octave metallophone. The Saron represents the values of harmony and cooperation in the Gamelan system." },
+      { name: "siter", desc: "The Siter is played by plucking its chords and is rarely in Gamelan ensembles, used as an addition to the melody. The Siter has metal strings over a box resonator." },
+      { name: "suling", desc: "The suling is made of bamboo and is played by blowing it." }
+    ];
 
-      const showStartButton = () => {
-        introOverlay.classList.add('hidden');
-        setTimeout(() => {
-          introOverlay.style.display = 'none';
-          startBtn.classList.remove('hidden');
-        }, 500);
-      };
+    // ── ELEMENT REFS ──────────────────────────────────────────────────────────
+    const assetLib       = document.querySelector('#asset-library');
+    const container      = document.querySelector('#main-container');
+    const infoText       = document.querySelector('#info-text');
+    const scanUI         = document.querySelector('#scanning-overlay');
+    const instructionImg = document.querySelector('#instruction-img');
+    const infoBtn        = document.querySelector('#info-btn');
+    const infoBox        = document.querySelector('#info-box');
+    const introOverlay   = document.querySelector('#intro-overlay');
+    const logoVideo      = document.querySelector('#logo-video');
+    const startBtn       = document.querySelector('#start-btn');
 
-      logoVideo.addEventListener('ended', showStartButton);
-      logoVideo.addEventListener('loadedmetadata', () => {
-        logoVideo.play().catch(() => {
-          setTimeout(showStartButton, 2700);
-        });
+    // ── INTRO ─────────────────────────────────────────────────────────────────
+    const showStartButton = () => {
+      introOverlay.classList.add('hidden');
+      setTimeout(() => {
+        introOverlay.style.display = 'none';
+        startBtn.classList.remove('hidden');
+      }, 500);
+    };
+
+    logoVideo.addEventListener('ended', showStartButton);
+    logoVideo.addEventListener('loadedmetadata', () => {
+      logoVideo.play().catch(() => { setTimeout(showStartButton, 2700); });
+    });
+    setTimeout(showStartButton, 2700);
+    startBtn.classList.add('hidden');
+
+    // ── BUILD ASSETS & ENTITIES ───────────────────────────────────────────────
+    instruments.forEach((item, index) => {
+      const upName = item.name.toUpperCase();
+
+      // Add video element directly to DOM instead of a-assets
+      const vid = document.createElement('video');
+      vid.id = `${item.name}-vid`;
+      vid.setAttribute('loop', true);
+      vid.setAttribute('crossorigin', 'anonymous');
+      vid.setAttribute('playsinline', true);
+      vid.setAttribute('muted', true);
+      vid.muted = true;
+      vid.preload = 'auto';
+      const src = document.createElement('source');
+      src.src = `./assets/${item.name}/FYP_${upName}.mp4`;
+      src.type = 'video/mp4';
+      vid.appendChild(src);
+      document.body.appendChild(vid);
+
+      const aud = document.createElement('audio');
+      aud.id = `${item.name}-audio`;
+      aud.src = `./assets/${item.name}/FYP_${upName}.mp3`;
+      aud.loop = true;
+      aud.preload = 'auto';
+      document.body.appendChild(aud);
+
+      // Build entity — use a-video first to test if video shows at all
+      const entity = document.createElement('a-entity');
+      entity.setAttribute('mindar-image-target', `targetIndex: ${index}`);
+      entity.innerHTML = `
+        <a-plane
+          id="${item.name}-entity"
+          position="0 0 0.01"
+          height="2"
+          width="1.5"
+          scale="0 0 0"
+          animation="property: scale; to: 1 1 1; dur: 400; easing: easeOutBack; startEvents: targetFound">
+        </a-plane>
+      `;
+      container.appendChild(entity);
+
+      // ── TARGET FOUND ────────────────────────────────────────────────────────
+      entity.addEventListener('targetFound', () => {
+        console.log(`[AR] targetFound: ${item.name}`);
+
+        instructionImg.classList.remove('visible');
+        infoBtn.classList.remove('hidden');
+        requestAnimationFrame(() => infoBtn.classList.add('visible'));
+        setTimeout(() => scanUI.classList.add('hidden'), 400);
+        infoText.innerText = item.desc;
+
+        const plane = document.querySelector(`#${item.name}-entity`);
+        const v     = document.querySelector(`#${item.name}-vid`);
+        const a     = document.querySelector(`#${item.name}-audio`);
+
+        plane.emit('targetFound');
+
+        v.muted = true;
+        v.currentTime = 0;
+
+        v.play().then(() => {
+          console.log(`[AR] video playing: ${item.name}`);
+
+          // Create Three.js video texture manually
+          const texture = new THREE.VideoTexture(v);
+          texture.minFilter = THREE.LinearFilter;
+          texture.magFilter = THREE.LinearFilter;
+          texture.format = THREE.RGBAFormat;
+
+          // Create Three.js shader material directly
+          const mat = new THREE.ShaderMaterial({
+            uniforms: {
+              src:       { value: texture },
+              keyColor:  { value: new THREE.Color(0.0, 1.0, 0.0) }, // #00FF00
+              tolerance: { value: 0.35 }
+            },
+            vertexShader: `
+              varying vec2 vUv;
+              void main() {
+                vUv = uv;
+                gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+              }
+            `,
+            fragmentShader: `
+              uniform sampler2D src;
+              uniform vec3 keyColor;
+              uniform float tolerance;
+              varying vec2 vUv;
+              void main() {
+                vec4 texColor = texture2D(src, vUv);
+                float diff = length(texColor.rgb - keyColor);
+                if (diff < tolerance) discard;
+                gl_FragColor = texColor;
+              }
+            `,
+            transparent: true,
+            side: THREE.DoubleSide
+          });
+
+          // Apply directly to the Three.js mesh
+          const mesh = plane.getObject3D('mesh');
+          if (mesh) {
+            mesh.material = mat;
+            console.log(`[AR] shader applied to mesh: ${item.name}`);
+          } else {
+            console.warn(`[AR] mesh not found for: ${item.name}`);
+          }
+
+          // Keep texture updating every frame
+          plane._videoInterval = setInterval(() => {
+            texture.needsUpdate = true;
+          }, 33);
+
+        }).catch(e => console.error(`[AR] video play error: ${item.name}`, e));
+
+        a.play().catch(e => console.error(`[AR] audio error:`, e));
       });
-      setTimeout(showStartButton, 2700);
 
-      // Hide the start button until the intro animation is complete.
-      startBtn.classList.add('hidden');
+      // ── TARGET LOST ─────────────────────────────────────────────────────────
+      entity.addEventListener('targetLost', () => {
+        console.log(`[AR] targetLost: ${item.name}`);
 
-      // 1. DYNAMIC ASSET & ENTITY GENERATION
-      instruments.forEach((item, index) => {
-        const upName = item.name.toUpperCase();
-        
-        // Inject Video and MP3 Assets
-        // Note: muted="true" is forced on the video tag
-        assetLib.innerHTML += `
-          <video id="${item.name}-vid" loop="true" crossorigin="anonymous" playsinline muted="true">
-            <source src="./assets/${item.name}/FYP_${upName}-1.mov" type='video/quicktime'>
-            <source src="./assets/${item.name}/FYP_${upName}.webm" type="video/webm">
-          </video>
-          <audio id="${item.name}-audio" src="./assets/${item.name}/FYP_${upName}.mp3" loop="true" preload="auto"></audio>
-        `;
-
-        const entity = document.createElement('a-entity');
-        entity.setAttribute('mindar-image-target', `targetIndex: ${index}`);
-        entity.innerHTML = `
-          <a-video id="${item.name}-entity" src="#${item.name}-vid" position="0 0 0.01" height="2" width="1.5" scale="0 0 0" transparent="true" 
-            animation="property: scale; to: 1 1 1; dur: 400; easing: easeOutBack; startEvents: targetFound">
-          </a-video>
-        `;
-        container.appendChild(entity);
-
-        // 2. TARGET BEHAVIOR
-        entity.addEventListener("targetFound", () => {
-          instructionImg.classList.remove('visible');
-          infoBtn.classList.remove('hidden');
-          requestAnimationFrame(() => infoBtn.classList.add('visible'));
-          setTimeout(() => scanUI.classList.add('hidden'), 400);
-
-          infoText.innerText = item.desc;
-          
-          document.querySelector(`#${item.name}-entity`).emit('targetFound');
-          
-          const v = document.querySelector(`#${item.name}-vid`);
-          const a = document.querySelector(`#${item.name}-audio`);
-          
-          v.muted = true; // Video is strictly visual
-          v.play();
-          a.play();
-        });
-
-        entity.addEventListener("targetLost", () => {
-          scanUI.classList.remove('hidden');
-          instructionImg.classList.add('visible');
-          infoBtn.classList.remove('visible');
-          setTimeout(() => infoBtn.classList.add('hidden'), 700);
-          infoBox.classList.remove('visible');
-          setTimeout(() => infoBox.classList.add('hidden'), 400);
-          
-          document.querySelector(`#${item.name}-entity`).setAttribute('scale', '0 0 0');
-          document.querySelector(`#${item.name}-vid`).pause();
-          document.querySelector(`#${item.name}-audio`).pause();
-        });
-      });
-
-      // 3. START BUTTON WARM-UP
-      document.querySelector('#start-btn').addEventListener('click', () => {
-        document.querySelector('#ui-overlay').classList.add('hidden');
         scanUI.classList.remove('hidden');
         instructionImg.classList.add('visible');
-        
-        instruments.forEach(item => {
-          const v = document.querySelector(`#${item.name}-vid`);
-          const a = document.querySelector(`#${item.name}-audio`);
-          // Warm up both to allow playback without a user-gesture error later
-          v.play().then(() => v.pause());
-          a.play().then(() => { a.pause(); a.currentTime = 0; });
-        });
-      });
+        infoBtn.classList.remove('visible');
+        setTimeout(() => infoBtn.classList.add('hidden'), 700);
+        infoBox.classList.remove('visible');
+        setTimeout(() => infoBox.classList.add('hidden'), 400);
 
-      // 4. INFO BOX TOGGLE
-      infoBtn.addEventListener('click', () => {
-        if (infoBox.classList.contains('visible')) {
-          infoBox.classList.remove('visible');
-          setTimeout(() => infoBox.classList.add('hidden'), 400);
-        } else {
-          infoBox.classList.remove('hidden');
-          requestAnimationFrame(() => infoBox.classList.add('visible'));
-        }
+        document.querySelector(`#${item.name}-entity`).setAttribute('scale', '0 0 0');
+        document.querySelector(`#${item.name}-vid`).pause();
+        document.querySelector(`#${item.name}-audio`).pause();
       });
-    </script>
+    });
+
+    // ── START BUTTON ──────────────────────────────────────────────────────────
+    startBtn.addEventListener('click', () => {
+      document.querySelector('#ui-overlay').classList.add('hidden');
+      scanUI.classList.remove('hidden');
+      instructionImg.classList.add('visible');
+
+      instruments.forEach(item => {
+        const v = document.querySelector(`#${item.name}-vid`);
+        const a = document.querySelector(`#${item.name}-audio`);
+        v.play().then(() => v.pause()).catch(() => {});
+        a.play().then(() => { a.pause(); a.currentTime = 0; }).catch(() => {});
+      });
+    });
+
+    // ── INFO BOX TOGGLE ───────────────────────────────────────────────────────
+    infoBtn.addEventListener('click', () => {
+      if (infoBox.classList.contains('visible')) {
+        infoBox.classList.remove('visible');
+        setTimeout(() => infoBox.classList.add('hidden'), 400);
+      } else {
+        infoBox.classList.remove('hidden');
+        requestAnimationFrame(() => infoBox.classList.add('visible'));
+      }
+    });
+  </script>
   </body>
 </html>
