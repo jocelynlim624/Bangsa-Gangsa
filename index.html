@@ -360,9 +360,8 @@
 
       instruments.forEach(item => {
         const v = document.querySelector(`#${item.name}-vid`);
-        const a = document.querySelector(`#${item.name}-audio`);
         v.play().then(() => v.pause()).catch(() => {});
-        a.play().then(() => { a.pause(); a.currentTime = 0; }).catch(() => {});
+        // Audio does not need warming up — remove it to prevent auto-play
       });
     });
 
