@@ -1,0 +1,339 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --maroon: #6B1A3A;
+  --maroon-dark: #4A0F28;
+  --maroon-light: #8C2050;
+  --cream: #F5EDE4;
+  --gold: #C97E2A;
+  --gold-light: #E8A94A;
+  --text-on-maroon: #FBF3EC;
+  --disc-size: min(58vw, 260px);
+  --panel-collapsed: 80px;
+  --panel-expanded: 70vh;
+  --transition-panel: 0.45s cubic-bezier(0.32, 0.72, 0, 1);
+  --font-heading: 'Libre Baskerville', Georgia, serif;
+  --font-body: 'Century Gothic', 'Avant Garde', Futura, 'Trebuchet MS', sans-serif;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  background: var(--cream);
+}
+
+body {
+  font-family: var(--font-body);
+}
+
+/* ─── App Shell ─────────────────────────────────────── */
+
+.app {
+  position: relative;
+  width: 100%;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--cream);
+}
+
+/* ─── Background ─────────────────────────────────────── */
+
+.bg-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.bg-gong-stand {
+  position: absolute;
+  padding-top: 20%;
+  width: 100%;
+  height: 57%;
+  top: 0;
+  left: 0;
+  object-fit: cover;
+  object-position: top center;
+  user-select: none;
+}
+
+/* ─── UI Frame Bottom Ornament ───────────────────────── */
+
+.ui-frame-bottom {
+  position: absolute;
+  bottom: var(--panel-collapsed);
+  padding-bottom: 5%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 95%;
+  height: auto;
+  pointer-events: none;
+  z-index: 9;
+  display: block;
+  user-select: none;
+}
+
+/* ─── Header ─────────────────────────────────────── */
+
+.top-bar {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  justify-content: center;
+  padding: 18px 20px 8px;
+}
+
+.logo {
+  height: 52px;
+  object-fit: contain;
+  user-select: none;
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,0.25));
+}
+
+/* ─── Player Area ─────────────────────────────────────── */
+
+.player-area {
+  position: relative;
+  z-index: 2;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding-bottom: calc(var(--panel-collapsed) + 16px);
+}
+
+/* ─── Disc ─────────────────────────────────────── */
+
+.disc-stage {
+  position: absolute;
+  top: 17%;
+  width: var(--disc-size);
+  height: var(--disc-size);
+  overflow: visible;
+}
+
+.disc-wrapper {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.55s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.4s ease;
+}
+
+.disc-wrapper.slide-out-left  { transform: translateX(-140%); opacity: 0; }
+.disc-wrapper.slide-out-right { transform: translateX(140%);  opacity: 0; }
+.disc-wrapper.slide-in-left   { transform: translateX(-140%); opacity: 0; transition: none; }
+.disc-wrapper.slide-in-right  { transform: translateX(140%);  opacity: 0; transition: none; }
+
+.disc-wrapper.slide-to-center {
+  transform: translateX(0);
+  opacity: 1;
+  transition: transform 0.55s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.4s ease;
+}
+
+.disc {
+  width: var(--disc-size);
+  height: var(--disc-size);
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow:
+    0 0 0 6px rgba(255,255,255,0.85),
+    0 8px 32px rgba(80,20,40,0.35);
+  user-select: none;
+  -webkit-user-drag: none;
+  will-change: transform;
+}
+
+.disc.spinning {
+  animation: spin 12s linear infinite;
+  animation-play-state: paused;
+}
+
+.disc.playing {
+  animation-play-state: running;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* ─── Track Info ─────────────────────────────────────── */
+
+.track-info {
+  text-align: center; 
+  padding-top: 87%;
+  /* max-width: 60%; */
+}
+
+.track-title {
+  font-family: var(--font-heading);
+  font-size: clamp(20px, 5vw, 26px);
+  font-weight: 700;
+  color: var(--maroon-dark);
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+
+.track-artist {
+  font-family: var(--font-body);
+  font-size: clamp(13px, 3.5vw, 15px);
+  color: var(--maroon);
+  opacity: 0.75;
+  margin-top: 4px;
+}
+
+/* ─── Controls ─────────────────────────────────────── */
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+  margin-top: 18px;
+}
+
+.ctrl-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  color: var(--maroon);
+  transition: transform 0.15s ease, opacity 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ctrl-btn:active { transform: scale(0.9); opacity: 0.7; }
+
+.ctrl-btn.prev svg,
+.ctrl-btn.next svg {
+  width: 40px;
+  height: 40px;
+}
+
+.ctrl-btn.play-pause {
+  width: 72px;
+  height: 72px;
+  background: linear-gradient(145deg, var(--maroon-light), var(--maroon-dark));
+  border-radius: 50%;
+  box-shadow: 0 4px 18px rgba(107,26,58,0.45);
+}
+
+.ctrl-btn.play-pause:active { transform: scale(0.93); }
+
+/*
+  Play icon uses an inline image element for reliable state switching.
+*/
+.play-icon {
+  display: block;
+ width: 75px;
+  object-fit: contain;
+  transition: opacity 0.15s ease;
+}
+
+/* ─── Info Panel ─────────────────────────────────────── */
+
+.info-panel {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  border-radius: 20px 20px 0 0;
+  background: var(--maroon-dark);
+  height: var(--panel-expanded);
+  transform: translateY(calc(100% - var(--panel-collapsed)));
+  transition: transform var(--transition-panel);
+  will-change: transform;
+  padding: 0 20px 32px;
+  overflow: hidden;
+}
+
+.info-panel.open { transform: translateY(0); }
+
+.info-handle {
+  display: flex;
+  justify-content: center;
+  padding: 12px 0 4px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.handle-bar {
+  width: 38px;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(245,237,228,0.35);
+}
+
+.info-collapsed {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 0 0;
+}
+
+.info-toggle-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-heading);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-on-maroon);
+  letter-spacing: 0.02em;
+  padding: 8px 0;
+  width: 100%;
+  text-align: center;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.info-expanded {
+  margin-top: 20px;
+  overflow-y: auto;
+  max-height: calc(var(--panel-expanded) - 100px);
+  padding-right: 4px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.info-expanded h2 {
+  font-family: var(--font-heading);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-on-maroon);
+  margin-bottom: 14px;
+}
+
+.info-expanded p {
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.75;
+  color: rgba(245,237,228,0.85);
+  margin-bottom: 12px;
+}
+
+.info-expanded p.sound-credit {
+  font-size: 13px;
+  font-style: italic;
+  color: rgba(245,237,228,0.55);
+  margin-top: 8px;
+}
+
+.info-expanded::-webkit-scrollbar { width: 3px; }
+.info-expanded::-webkit-scrollbar-thumb {
+  background: rgba(245,237,228,0.25);
+  border-radius: 2px;
+}

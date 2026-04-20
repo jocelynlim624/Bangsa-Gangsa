@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bangsa Gangsa</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="app">
+
+  <div class="bg-layer">
+    <img src="assets/images/bg-gong-stand.png" alt="" class="bg-gong-stand" draggable="false">
+  </div>
+
+  <header class="top-bar">
+    <img src="assets/images/logo-bangsa-gangsa.png" alt="Bangsa Gangsa" class="logo" draggable="false">
+  </header>
+
+  <main class="player-area">
+    <div class="disc-stage">
+      <div class="disc-wrapper" id="discWrapper">
+        <img src="" alt="Album cover" class="disc spinning" id="discImg">
+      </div>
+    </div>
+
+    <div class="track-info">
+      <h1 class="track-title" id="trackTitle"></h1>
+      <p class="track-artist" id="trackArtist"></p>
+    </div>
+
+    <div class="controls">
+      <button class="ctrl-btn prev" id="prevBtn" aria-label="Previous track">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="19 20 9 12 19 4 19 20"></polygon>
+          <line x1="5" y1="4" x2="5" y2="20"></line>
+        </svg>
+      </button>
+
+      <button class="ctrl-btn play-pause" id="playBtn" aria-label="Play / Pause">
+        <img class="play-icon" id="playIcon" src="assets/images/pause.png" alt="Play / pause button">
+      </button>
+
+      <button class="ctrl-btn next" id="nextBtn" aria-label="Next track">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="5 4 15 12 5 20 5 4"></polygon>
+          <line x1="19" y1="4" x2="19" y2="20"></line>
+        </svg>
+      </button>
+    </div>
+  </main>
+
+  <div class="info-panel" id="infoPanel">
+    <div class="info-handle" id="infoHandle">
+      <div class="handle-bar"></div>
+    </div>
+
+    <div class="info-collapsed">
+      <button class="info-toggle-btn" id="infoToggleBtn">About Omah Cangkem</button>
+    </div>
+
+    <div class="info-expanded" id="infoExpanded">
+      <h2>Omah Cangkem</h2>
+      <p>Studio Omah Cangkem is a cultural space based in Bantul, Yogyakarta, founded by Pardiman Djoyonegoro.</p>
+      <p>The space has grown into a vibrant hub for artistic exploration, community engagement, and cultural education. Rooted in a deep commitment to preserving Indonesian heritage, Omah Cangkem revitalizes gamelan by making them accessible and engaging for younger generations, inviting people not just to observe tradition, but to live and reinterpret it.</p>
+      <p class="sound-credit" id="soundCredit"></p>
+    </div>
+  </div>
+
+  <img src="assets/images/ui-frame-bottom.svg" alt="" class="ui-frame-bottom" draggable="false">
+
+</div>
+
+<audio id="audioPlayer" loop></audio>
+
+<script src="main.js"></script>
+</body>
+</html>
