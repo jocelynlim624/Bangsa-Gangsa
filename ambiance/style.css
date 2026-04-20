@@ -53,9 +53,9 @@ body {
 
 .bg-gong-stand {
   position: absolute;
-  padding-top: 20%;
+  padding-top: 15%;
   width: 100%;
-  height: 57%;
+  height: 80%%;
   top: 0;
   left: 0;
   object-fit: cover;
@@ -173,7 +173,7 @@ body {
 
 .track-info {
   text-align: center; 
-  padding-top: 87%;
+  padding-top: 100%;
   /* max-width: 60%; */
 }
 
@@ -199,8 +199,8 @@ body {
 .controls {
   display: flex;
   align-items: center;
-  gap: 30px;
-  margin-top: 18px;
+  gap: clamp(40px, 6vw, 50px);
+  margin-top: 0%;
 }
 
 .ctrl-btn {
@@ -220,13 +220,13 @@ body {
 
 .ctrl-btn.prev svg,
 .ctrl-btn.next svg {
-  width: 40px;
-  height: 40px;
+  width: clamp(40px, 6vw, 50px);
+  height: clamp(40px, 6vw, 50px);
 }
 
 .ctrl-btn.play-pause {
-  width: 72px;
-  height: 72px;
+  width: clamp(70px, 10vw, 80px);
+  height: clamp(70px, 10vw, 80px);
   background: linear-gradient(145deg, var(--maroon-light), var(--maroon-dark));
   border-radius: 50%;
   box-shadow: 0 4px 18px rgba(107,26,58,0.45);
@@ -239,7 +239,7 @@ body {
 */
 .play-icon {
   display: block;
- width: 75px;
+  width: 100%;
   object-fit: contain;
   transition: opacity 0.15s ease;
 }
@@ -248,7 +248,7 @@ body {
 
 .info-panel {
   position: absolute;
-  bottom: 0;
+  bottom: -10px;
   left: 0;
   right: 0;
   z-index: 10;
