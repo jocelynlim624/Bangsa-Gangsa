@@ -29,6 +29,7 @@ html, body {
 body {
   font-family: var(--font-body);
 }
+
 /* ─── App Shell ─────────────────────────────────────── */
 
 .app {
@@ -113,7 +114,7 @@ body {
 
 .disc-stage {
   position: absolute;
-  top: 17%;
+  top: 20%;
   width: var(--disc-size);
   height: var(--disc-size);
   overflow: visible;
@@ -335,4 +336,201 @@ body {
 .info-expanded::-webkit-scrollbar-thumb {
   background: rgba(245,237,228,0.25);
   border-radius: 2px;
+}
+
+/* ─── Responsive Design for Shorter Heights ─────────────────────────────────────── */
+@media (max-height: 900px) {
+  :root {
+    --disc-size: min(70vw, 3000px);
+    --panel-expanded: 60vh;
+  }
+
+  .player-area {
+    gap: 12px;
+    padding-bottom: calc(var(--panel-collapsed) + 12px);
+  }
+
+  .disc-stage {
+    top: 12%;
+  }
+
+  .track-info {
+    padding-top: 95%;
+  }
+
+  .track-title {
+    font-size: clamp(18px, 4vw, 22px);
+  }
+
+  .track-artist {
+    font-size: clamp(12px, 3vw, 14px);
+  }
+
+  .controls {
+    gap: clamp(30px, 5vw, 40px);
+    margin-top: 2%;
+  }
+
+  .ctrl-btn.prev svg,
+  .ctrl-btn.next svg {
+    width: clamp(50px, 5vw, 45px);
+    height: clamp(50px, 5vw, 45px);
+  }
+
+  .ctrl-btn.play-pause {
+    width: clamp(90px, 10vw, 80px);
+    height: clamp(90px, 10vw, 80px);
+  }
+
+  .info-expanded h2 {
+    font-size: 18px;
+  }
+
+  .info-expanded p {
+    font-size: 13px;
+  }
+
+  .bg-gong-stand {
+    padding-top:5%;
+    height: 75%;
+  }
+}
+
+
+@media (max-height: 650px) {
+  :root {
+    --disc-size: min(60vw, 250px);
+    --panel-expanded: 60vh;
+  }
+
+  .player-area {
+    gap: 12px;
+    padding-bottom: calc(var(--panel-collapsed) + 12px);
+  }
+
+  .disc-stage {
+    top: 12%;
+  }
+
+  .track-info {
+    padding-top: 95%;
+  }
+
+  .track-title {
+    font-size: clamp(18px, 4vw, 22px);
+  }
+
+  .track-artist {
+    font-size: clamp(12px, 3vw, 14px);
+  }
+
+  .controls {
+    gap: clamp(30px, 5vw, 40px);
+    margin-top: -1%;
+  }
+
+  .ctrl-btn.prev svg,
+  .ctrl-btn.next svg {
+    width: clamp(35px, 5vw, 45px);
+    height: clamp(35px, 5vw, 45px);
+  }
+
+  .ctrl-btn.play-pause {
+    width: clamp(60px, 8vw, 70px);
+    height: clamp(60px, 8vw, 70px);
+  }
+
+  .info-expanded h2 {
+    font-size: 18px;
+  }
+
+  .info-expanded p {
+    font-size: 13px;
+  }
+
+  .bg-gong-stand {
+    padding-top:5%;
+    height: 75%;
+  }
+}
+
+@media (max-height: 500px) {
+  :root {
+    --disc-size: min(50vw, 250px);
+    --panel-expanded: 50vh;
+  }
+
+  .top-bar {
+    padding: 12px 20px 4px;
+  }
+
+  .logo {
+    height: 40px;
+  }
+
+  .player-area {
+    gap: 8px;
+    padding-bottom: calc(var(--panel-collapsed) + 8px);
+  }
+
+  .disc-stage {
+    top: 15%;
+  }
+
+  .track-info {
+    padding-top: 60%;
+  }
+
+  .track-title {
+    font-size: clamp(16px, 4vw, 20px);
+    padding-top: 90px;
+  }
+
+  .track-artist {
+    font-size: clamp(11px, 2.5vw, 13px);
+    margin-top: 0px;
+  }
+
+  .controls {
+    gap: clamp(25px, 4vw, 35px);
+    margin-top: -1%;
+  }
+
+  .ctrl-btn.prev svg,
+  .ctrl-btn.next svg {
+    width: clamp(30px, 4vw, 40px);
+    height: clamp(30px, 4vw, 40px);
+  }
+
+  .ctrl-btn.play-pause {
+    width: clamp(50px, 7vw, 60px);
+    height: clamp(50px, 7vw, 60px);
+  }
+
+  .info-toggle-btn {
+  padding: 0px 0;
+  width: 100%;
+  text-align: center;
+  -webkit-tap-highlight-color: transparent;
+}
+
+  .info-panel {
+    padding: 0 16px 24px;
+    top: 55%;
+  }
+
+  .info-expanded {
+    margin-top: 16px;
+    max-height: calc(var(--panel-expanded) - 80px);
+  }
+
+  .info-expanded h2 {
+    font-size: 16px;
+    margin-bottom: 12px;
+  }
+
+  .bg-gong-stand {
+    padding-top:0%;
+    height: 80%;
+  }
 }
