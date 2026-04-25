@@ -535,7 +535,7 @@ body {
   }
 }
 
-@media (max-height: 450px) {
+@media (max-height: 400px) {
   :root {
     --disc-size: min(50vw, 190px);
     --panel-expanded: 50vh;
